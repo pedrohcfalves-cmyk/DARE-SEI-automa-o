@@ -29,3 +29,8 @@ modelos/
 *.xlsb
 *.xls
 ~$*
+
+# Construção do aplicativo (gerados por construir_aplicativo.bat)
+build/
+dist/
+.venv-build/

@@ -17,6 +17,53 @@ entre elas durante o trabalho.
 
 ---
 
+## Aplicativo com janela (versão 3.0)
+
+A partir da versão 3.0 o programa tem uma **interface gráfica** e pode ser **instalado em qualquer
+computador com Windows 10/11 sem Python** (tudo vai junto no instalador). O modo terminal continua
+existindo (`executar.bat` ou `DARE Automacao.exe --terminal`).
+
+| Tela | O que faz |
+|---|---|
+| **Início** | Situação geral: navegador, lançamentos na lista, concluídos hoje, tamanho da pasta dos PDFs e últimas execuções |
+| **Lançamentos** | Formulário com validação na hora (CPF/CNPJ, datas, valores), lista com editar/duplicar/remover, avisos de duplicidade e vencimento no passado, **importar planilha** |
+| **Execução** | Andamento lote a lote: etapa atual (DARE → PDF → SEI), tempo decorrido e restante, registro, botão **Parar após o lançamento atual**, repetir os pendentes |
+| **Arquivos PDF** | Tamanho da pasta `DARE_PDFs` e **limpeza quando o usuário quiser**: tudo, mais antigos que N dias, até uma data ou só os selecionados. Vai para a **Lixeira** (dá para recuperar) e **protege** os PDFs de DAREs que não foram anexados no SEI. Opcional: limpeza automática ao abrir e aviso por tamanho |
+| **Desempenho** | Para estudo/apresentação: tempos reais de cada etapa (média, mediana, desvio, P95, gargalo), monitor de CPU/memória/rede em tempo real, diagnóstico do sistema e testes de velocidade. Exporta **relatório HTML** e **CSV** |
+| **Configurações** | **Versão do aplicativo**, navegador usado, pastas e valores fixos |
+
+A versão aparece na barra lateral, no título da janela e em Configurações (`dare_auto/__init__.py`).
+
+Novidades que ajudam a instalar em outros computadores:
+
+- **Sem Python**: o instalador leva o Python, o Playwright (com o Node embutido), o pywin32, o openpyxl e o psutil.
+- **Sem Chrome?** O programa usa o **Microsoft Edge**, que já vem no Windows.
+- **Sem Excel?** O modo planilha lê arquivos `.xlsx`/`.xlsm` diretamente.
+- Instala **sem administrador** (em `%LOCALAPPDATA%\Programs\DARE Automacao`) e cria atalho na Área de Trabalho.
+- No aplicativo instalado, PDFs, histórico e logs ficam em **Documentos\DARE Automação** (não se perdem ao atualizar).
+- `DARE Automacao.exe --diagnostico` gera um relatório de diagnóstico sem abrir a janela (há um atalho no menu Iniciar).
+
+### Gerar o instalador
+
+No **seu** computador (o que tem Python), dê dois cliques em **`construir_aplicativo.bat`**. Ele:
+
+1. cria um ambiente isolado (`.venv-build`) e baixa os componentes;
+2. roda os testes;
+3. gera o executável em `dist\DARE Automacao\` e testa o motor de automação dentro dele;
+4. gera a **versão portátil** `dist\DARE_Automacao_Portatil_<versão>.zip`;
+5. gera o **instalador** `dist\instalador\DARE_Automacao_Instalador_<versão>.exe` (usa o Inno Setup, gratuito;
+   se não estiver instalado, o script oferece instalar pelo `winget`).
+
+Leve o instalador para os outros computadores: é só abrir, clicar em Avançar e pronto.
+
+Alternativa sem PC: o arquivo `empacotamento/github-actions/construir-aplicativo.yml` gera o instalador no
+GitHub. Copie-o para `.github/workflows/` no repositório, envie (commit/push) e use a aba *Actions* →
+*Construir aplicativo* → *Run workflow*; o resultado fica em *Artifacts*.
+
+Para lançar uma nova versão: mude `__version__` em `dare_auto/__init__.py` e rode o `construir_aplicativo.bat` de novo.
+
+---
+
 ## Requisitos
 
 - Windows com **Google Chrome**
@@ -119,12 +166,15 @@ Mês/Ano referência · Vencimento · Valor (R$). A linha 2 do modelo é só um 
 
 | O quê | Onde |
 |---|---|
-| **PDFs gerados** | `DARE_PDFs/` (ao lado do script) |
+| **PDFs gerados** | `DARE_PDFs/` (ao lado do script; no aplicativo instalado, em `Documentos\DARE Automação`) |
 | Histórico de execuções (uma linha por lote) | `dados/historico.csv` (abre no Excel) |
 | Últimos dados digitados (viram padrão) | `dados/ultimos_dados.json` |
 | Lançamentos de lote ainda pendentes | `dados/lote_pendente.json` |
 | Colunas escolhidas para cada planilha/aba | `dados/mapeamentos_planilha.json` |
 | Planilha modelo | `modelos/modelo_dare.xlsx` |
+| Opções do aplicativo | `dados/preferencias.json` |
+| Tempo de cada etapa (aba Desempenho, sem CPF/processo) | `dados/desempenho.csv` |
+| Resultados dos testes de velocidade | `dados/benchmarks.json` |
 | Log completo | `logs/dare_automacao.log` (rotativo, até 6 MB) |
 | Capturas de tela de erros | `logs/erros/` |
 | Perfil do Chrome de depuração | `%LOCALAPPDATA%\DARE_Chrome_Perfil` |
@@ -143,8 +193,15 @@ Tudo que é fixo fica em `dare_auto/config.py`: URLs, órgão, código da receit
 ## Estrutura
 
 ```
-dare_automacao.py        ponto de entrada (menu, abertura do Chrome e loop dos lotes)
+dare_app.py              ponto de entrada do APLICATIVO COM JANELA (--terminal, --diagnostico)
+dare_automacao.py        ponto de entrada do modo terminal (menu, abertura do Chrome e loop dos lotes)
 dare_auto/
+  gui/                   interface gráfica (Tkinter): app, tema, componentes, páginas, importar planilha
+  motor.py               execução em segundo plano para a janela, com o tempo de cada etapa
+  limpeza.py             limpeza da pasta dos PDFs (Lixeira, proteção dos não anexados)
+  desempenho.py          diagnóstico, testes de velocidade, monitor e estatísticas
+  planilha_arquivo.py    modo planilha sem o Excel (openpyxl)
+  preferencias.py        opções do aplicativo (dados/preferencias.json)
   config.py              constantes e pastas
   menu.py                interface de terminal (coleta, conferência, resumo)
   dare.py                passos no site do DARE
@@ -158,6 +215,9 @@ dare_auto/
   modelos.py             dados de um lançamento e resultado de um lote
   logger.py              logs em arquivo + console
 tests/                   testes automáticos
+construir_aplicativo.bat gera o executável, a versão portátil e o instalador
+abrir_aplicativo.bat     abre o aplicativo com janela pelo código-fonte
+empacotamento/           receita do PyInstaller e do instalador (Inno Setup)
 instalar.bat             instala os componentes (uma vez)
 executar.bat             abre o programa
 GUIA_DE_USO.html         guia passo a passo para o usuário final (imprimível)

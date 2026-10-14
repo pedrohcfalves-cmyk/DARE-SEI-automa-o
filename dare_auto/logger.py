@@ -30,8 +30,12 @@ class _FormatoConsole(logging.Formatter):
         return f"  \033[2m{hora}\033[0m  {_CORES.get(record.levelno, '')}{msg}\033[0m"
 
 
-def configurar(nivel_console: int = logging.INFO) -> logging.Logger:
-    """Configura (uma única vez) os logs do projeto e devolve o logger raiz 'dare'."""
+def configurar(nivel_console: int = logging.INFO, console: bool = True) -> logging.Logger:
+    """
+    Configura (uma única vez) os logs do projeto e devolve o logger raiz 'dare'.
+    Com console=False (aplicativo com janela, sem terminal) só grava no arquivo; a janela
+    acrescenta o seu próprio handler para mostrar as mensagens.
+    """
     log = logging.getLogger(NOME)
     if log.handlers:
         return log
@@ -48,8 +52,9 @@ def configurar(nivel_console: int = logging.INFO) -> logging.Logger:
     )
     log.addHandler(arquivo)
 
-    console = logging.StreamHandler(sys.stdout)
-    console.setLevel(nivel_console)
-    console.setFormatter(_FormatoConsole(sys.stdout.isatty()))
-    log.addHandler(console)
+    if console and sys.stdout is not None:  # no executável com janela não existe terminal
+        saida = logging.StreamHandler(sys.stdout)
+        saida.setLevel(nivel_console)
+        saida.setFormatter(_FormatoConsole(sys.stdout.isatty()))
+        log.addHandler(saida)
     return log

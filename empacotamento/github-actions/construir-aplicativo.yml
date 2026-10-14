@@ -1,0 +1,58 @@
+# Gera o executável e o instalador do Windows no GitHub (sem precisar de um PC com Python).
+# Rode em Actions > "Construir aplicativo" > Run workflow, ou crie uma tag (ex.: v3.0.0).
+# O resultado fica em "Artifacts" na página da execução.
+name: Construir aplicativo
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Componentes
+        run: python -m pip install -r requirements.txt -r requirements-build.txt
+
+      - name: Testes
+        run: python -m unittest discover -v
+
+      - name: Executável
+        run: python -m PyInstaller --noconfirm --clean empacotamento/dare_automacao.spec --distpath dist --workpath build
+
+      - name: Teste do executável
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\DARE Automacao\DARE Automacao.exe" -ArgumentList "--diagnostico","build\diagnostico.html" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "O motor de automação não iniciou no executável." }
+
+      - name: Versão
+        id: v
+        shell: bash
+        run: echo "versao=$(python -c 'import dare_auto; print(dare_auto.__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Instalador
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc /DVersao=${{ steps.v.outputs.versao }} empacotamento\instalador.iss
+          if ($LASTEXITCODE -ne 0) { throw "Falha ao gerar o instalador." }
+
+      - name: Versão portátil
+        shell: pwsh
+        run: Compress-Archive -Path "dist\DARE Automacao" -DestinationPath "dist\DARE_Automacao_Portatil_${{ steps.v.outputs.versao }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DARE_Automacao_${{ steps.v.outputs.versao }}
+          path: |
+            dist/instalador/*.exe
+            dist/*.zip

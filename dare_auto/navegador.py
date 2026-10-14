@@ -33,7 +33,11 @@ def chrome_debug_ativo(timeout: float = 0.4) -> bool:
 
 
 def localizar_chrome() -> str | None:
-    """Caminho do Chrome: variável DARE_CHROME_PATH, locais padrão do Windows ou o PATH."""
+    """
+    Caminho do navegador: variável DARE_CHROME_PATH, Chrome nos locais padrão do Windows ou
+    no PATH. Se o Chrome não estiver instalado, usa o Microsoft Edge (que vem com o Windows
+    10/11 e aceita o mesmo modo de depuração), para o programa funcionar em qualquer computador.
+    """
     candidatos = [os.environ.get("DARE_CHROME_PATH", "")]
     for var in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
         base = os.environ.get(var)
@@ -47,7 +51,28 @@ def localizar_chrome() -> str | None:
         achado = shutil.which(nome)
         if achado:
             return achado
+    return localizar_edge()
+
+
+def localizar_edge() -> str | None:
+    """Caminho do Microsoft Edge (alternativa quando o Chrome não está instalado)."""
+    for var in ("PROGRAMFILES(X86)", "PROGRAMFILES", "LOCALAPPDATA"):
+        base = os.environ.get(var)
+        if base:
+            caminho = os.path.join(base, "Microsoft", "Edge", "Application", "msedge.exe")
+            if os.path.isfile(caminho):
+                return caminho
     return None
+
+
+def nome_navegador(exe: str | None) -> str:
+    """'Microsoft Edge' ou 'Google Chrome', conforme o executável."""
+    return "Microsoft Edge" if exe and "msedge" in os.path.basename(exe).lower() else "Google Chrome"
+
+
+def perfil_para(exe: str) -> Path:
+    """Perfil do navegador de depuração: um para o Chrome e outro para o Edge (não se misturam)."""
+    return config.PERFIL_EDGE if "msedge" in os.path.basename(exe).lower() else config.PERFIL_CHROME
 
 
 def iniciar_chrome(espera: float = config.ESPERA_CHROME) -> bool:
@@ -62,11 +87,12 @@ def iniciar_chrome(espera: float = config.ESPERA_CHROME) -> bool:
         log.error("Chrome não encontrado. Defina DARE_CHROME_PATH com o caminho do chrome.exe.")
         return False
 
-    config.PERFIL_CHROME.mkdir(parents=True, exist_ok=True)
+    perfil = perfil_para(exe)
+    perfil.mkdir(parents=True, exist_ok=True)
     args = [
         exe,
         f"--remote-debugging-port={config.PORTA_CDP}",
-        f"--user-data-dir={config.PERFIL_CHROME}",
+        f"--user-data-dir={perfil}",
         "--no-first-run",
         "--no-default-browser-check",
         "--disable-background-timer-throttling",
@@ -81,7 +107,7 @@ def iniciar_chrome(espera: float = config.ESPERA_CHROME) -> bool:
         opcoes["creationflags"] = 0x00000008 | 0x00000200  # DETACHED_PROCESS | NEW_PROCESS_GROUP
     else:
         opcoes["start_new_session"] = True
-    log.info("Abrindo o Chrome em modo depuração (SEI e DARE).")
+    log.info("Abrindo o %s em modo depuração (SEI e DARE).", nome_navegador(exe))
     subprocess.Popen(args, **opcoes)
 
     fim = time.monotonic() + espera
@@ -91,8 +117,8 @@ def iniciar_chrome(espera: float = config.ESPERA_CHROME) -> bool:
             return True
         time.sleep(0.5)
     log.error(
-        "O Chrome abriu, mas a porta %s não respondeu. Feche TODAS as janelas do Chrome que usam o "
-        "perfil '%s' e tente de novo.", config.PORTA_CDP, config.PERFIL_CHROME,
+        "O navegador abriu, mas a porta %s não respondeu. Feche TODAS as janelas que usam o "
+        "perfil '%s' e tente de novo.", config.PORTA_CDP, perfil,
     )
     return False
 

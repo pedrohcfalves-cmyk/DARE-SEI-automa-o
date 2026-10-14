@@ -1,0 +1,2 @@
+# Só para GERAR o executável (construir_aplicativo.bat). Quem usa o programa não precisa disto.
+pyinstaller>=6.10,<7
