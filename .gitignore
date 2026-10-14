@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Dados pessoais e arquivos gerados (CPF, CNPJ, nomes, PDFs): NUNCA versionar
+DARE_PDFs/
+dados/
+logs/
+.env
+
+# Editor / sistema
+.vscode/*
+!.vscode/launch.json
+.idea/
+Thumbs.db
+.DS_Store
+
+# Backups
+*.bak*
+*.tmp
+
+# Modo planilha: planilhas reais têm CPF/CNPJ e nomes -> NUNCA versionar
+modelos/
+*.xlsx
+*.xlsm
+*.xlsb
+*.xls
+~$*

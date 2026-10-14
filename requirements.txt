@@ -1,0 +1,5 @@
+# Python 3.10 ou superior
+# Não é preciso rodar "playwright install": o script usa o seu Chrome já instalado.
+playwright>=1.44
+# Modo planilha (leitura do Excel via COM). Só no Windows, com o Excel instalado.
+pywin32>=306; sys_platform == "win32"
