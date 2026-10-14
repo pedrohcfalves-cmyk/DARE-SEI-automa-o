@@ -114,7 +114,8 @@ def menu_principal(chrome_ok: bool) -> str:
     banner()
     chrome = _c("● aberto", VERDE) if chrome_ok else _c("● fechado (abre ao iniciar)", AMARELO)
     print(f"\n  Chrome de depuração (porta {config.PORTA_CDP}): {chrome}")
-    print(f"  Pasta dos PDFs: {_c(str(config.PASTA_PDF), DIM)}\n")
+    print(f"  Pasta dos PDFs: {_c(str(config.PASTA_PDF), DIM)}")
+    print(f"  {_c('Uso restrito a pessoas autorizadas · veja LICENCA.txt', DIM)}\n")
     opcoes = [
         ("1", "Modo em lotes     (digitar os dados na tela)"),
         ("2", "Modo planilha     (ler os dados de uma planilha do Excel)"),

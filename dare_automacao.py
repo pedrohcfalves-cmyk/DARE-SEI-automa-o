@@ -5,6 +5,9 @@ Gera o DARE avulso, salva o PDF e o anexa como documento externo no processo do 
 Abre o Chrome em modo depuração (SEI + DARE) e processa os lançamentos em lote, digitados
 na tela (modo em lotes) ou lidos de uma planilha do Excel (modo planilha).
 Uso:  python dare_automacao.py      (ou dê dois cliques em executar.bat)
+
+Copyright (c) 2026. Todos os direitos reservados. Uso restrito a pessoas autorizadas pelo
+titular (veja LICENCA.txt).
 Veja o README.md para o passo a passo.
 """
 

@@ -28,7 +28,7 @@ class Base(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         tmp = Path(self.tmp.name)
         for nome, valor in (("PASTA_DADOS", tmp), ("ARQ_MAPEAMENTOS", tmp / "map.json"),
-                            ("ARQ_LOTE", tmp / "lote.json")):
+                            ("ARQ_LOTE", tmp / "lote.json"), ("PASTA_MODELOS", tmp / "modelos")):
             p = mock.patch.object(config, nome, valor)
             p.start()
             self.addCleanup(p.stop)

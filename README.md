@@ -9,6 +9,12 @@ Automatiza, **em lotes** (digitados na tela ou lidos de uma **planilha do Excel*
 Ao iniciar, o programa **abre sozinho o Chrome em modo depuração com as duas abas (SEI e DARE)** e alterna
 entre elas durante o trabalho.
 
+> **Para quem vai usar no dia a dia (sem conhecimento de informática):** abra o **`GUIA_DE_USO.html`**
+> (dois cliques; abre no navegador e pode ser impresso). Ele explica cada passo com letras grandes.
+> Na primeira vez, rode `instalar.bat` e depois `executar.bat`.
+
+**Licença:** software proprietário, de uso restrito a pessoas autorizadas pelo titular. Veja `LICENCA.txt`.
+
 ---
 
 ## Requisitos
@@ -24,6 +30,7 @@ pip install -r requirements.txt
 
 ## Como usar
 
+0. **Instale (uma vez):** dois cliques em `instalar.bat` (precisa do Python e de internet).
 1. **Rode o programa:** dois cliques em `executar.bat` (ou `python dare_automacao.py`).
    O Chrome abre sozinho, num perfil próprio, com o SEI e o DARE. **Na primeira vez**, entre com a sua conta nos
    dois sistemas; nas próximas o login costuma ficar salvo nesse perfil.
@@ -151,6 +158,10 @@ dare_auto/
   modelos.py             dados de um lançamento e resultado de um lote
   logger.py              logs em arquivo + console
 tests/                   testes automáticos
+instalar.bat             instala os componentes (uma vez)
+executar.bat             abre o programa
+GUIA_DE_USO.html         guia passo a passo para o usuário final (imprimível)
+LICENCA.txt              licença de uso
 iniciar_chrome_debug.bat abre o Chrome de depuração manualmente (opcional)
 legado/                  versões anteriores do código
 ```
@@ -204,3 +215,9 @@ Apague-os quando não precisar mais.
   não sumir, só registra um aviso no log: confira o processo.
 - Cada lote é independente: se o DARE já foi gerado e o anexo no SEI falhou, o DARE **existe**. Não refaça o
   lote sem conferir (o PDF fica em `DARE_PDFs/`).
+
+## Licença
+
+Software proprietário. Copyright © 2026, todos os direitos reservados. O uso é restrito a pessoas autorizadas
+pelo titular; copiar, distribuir, publicar ou modificar sem autorização é proibido. Os termos completos estão em
+`LICENCA.txt`. **Mantenha o repositório privado.**
